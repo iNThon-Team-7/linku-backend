@@ -1,8 +1,9 @@
-import { IsEmail, IsString, IsStrongPassword } from 'class-validator';
+import { IsEmail, IsString, IsStrongPassword, Matches } from 'class-validator';
 
 export class AuthRegisterRequestDto {
   @IsString()
   @IsEmail()
+  @Matches(/^\w+@korea\.ac\.kr$/g)
   email: string;
 
   @IsString()

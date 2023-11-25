@@ -29,9 +29,9 @@ export class AuthService {
 
   async verifyLogin(user: User, password: string): Promise<boolean> {
     if (!user) return false;
-    const { certified, password: hashedPassword } = user;
+    const { password: hashedPassword } = user;
 
-    return certified && this.verifyHash(password, hashedPassword);
+    return this.verifyHash(password, hashedPassword);
   }
 
   async decodeToken(token: string): Promise<TokenPayloadDto | undefined> {

@@ -18,7 +18,6 @@ import {
   AuthRegisterRequestDto,
   AuthTokenResponseDto,
   AuthUserDto,
-  UserResponseDto,
 } from 'src/dtos';
 import { JwtAuthGuard } from './guard/jwt.auth.guard';
 import { AuthUser } from 'src/lib/decorators/auth.user.decorator';
@@ -84,9 +83,7 @@ export class AuthController {
 
   @Post('/register')
   @ApiOperation({ summary: '회원 가입 및 인증 이메일 전송' })
-  async register(
-    @Body() body: AuthRegisterRequestDto,
-  ): Promise<UserResponseDto> {
+  async register(@Body() body: AuthRegisterRequestDto): Promise<void> {
     const { email, password } = body;
     const hashedPassword = await this.authService.hash(password);
 
@@ -96,14 +93,13 @@ export class AuthController {
     }
 
     const uuid = randomUuid();
-    const user = await this.userService.createUser({
+    await this.userService.createUser({
       email,
       uuid,
       password: hashedPassword,
     });
 
     await this.mailService.sendCertificateMail(email, uuid);
-    return UserResponseDto.of(user);
   }
 
   @Post('/logout')

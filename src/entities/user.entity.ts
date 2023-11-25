@@ -1,3 +1,4 @@
+import { Role } from 'src/lib/enums';
 import {
   BaseEntity,
   Column,
@@ -27,6 +28,6 @@ export class User extends BaseEntity {
   @Column({ type: 'uuid' })
   uuid: string;
 
-  @Column({ default: false })
-  certified: boolean;
+  @Column({ type: 'enum', enum: Role, default: 'PENDING' })
+  role: Role;
 }

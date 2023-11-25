@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities';
+import { Role } from 'src/lib/enums';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -43,6 +44,6 @@ export class UserService {
   }
 
   async certifyUser(id: number): Promise<void> {
-    await this.userRepository.update(id, { certified: true });
+    await this.userRepository.update(id, { role: Role.USER });
   }
 }
