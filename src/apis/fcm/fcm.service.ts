@@ -13,8 +13,13 @@ export class FcmService {
     body: string;
     type: string;
     data: { [key: string]: string | number };
-  }): Promise<unknown> {
+  }): Promise<FcmResultDto> {
     const { token, title, body, type, data } = info;
+
+    if (!token) {
+      console.log('FCM send error: token is empty');
+      return;
+    }
 
     const message: FcmMessageDto = {
       to: token,
@@ -44,7 +49,10 @@ export class FcmService {
     return result;
   }
 
-  async sendMessageNewMeet(token: string, meetId: number): Promise<unknown> {
+  async sendMessageNewMeet(
+    token: string,
+    meetId: number,
+  ): Promise<FcmResultDto> {
     return this.sendFcm({
       token,
       title: '관심 분야에 새로운 모임이 생성되었습니다.',
@@ -56,7 +64,10 @@ export class FcmService {
     });
   }
 
-  async sendMessageNewReply(token: string, meetId: number): Promise<unknown> {
+  async sendMessageNewReply(
+    token: string,
+    meetId: number,
+  ): Promise<FcmResultDto> {
     return this.sendFcm({
       token,
       title: '참여한 모임에 새로운 댓글이 달렸습니다.',
@@ -68,7 +79,10 @@ export class FcmService {
     });
   }
 
-  async sendMessageOnMeet(token: string, meetId: number): Promise<unknown> {
+  async sendMessageOnMeet(
+    token: string,
+    meetId: number,
+  ): Promise<FcmResultDto> {
     return this.sendFcm({
       token,
       title: '참여한 모임의 시작 시간이 되었습니다.',
@@ -80,7 +94,7 @@ export class FcmService {
     });
   }
 
-  async sendMessageCertificate(token: string): Promise<unknown> {
+  async sendMessageCertificate(token: string): Promise<FcmResultDto> {
     return this.sendFcm({
       token,
       title: '이메일 인증이 완료되었습니다.',
