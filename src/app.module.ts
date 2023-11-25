@@ -6,6 +6,7 @@ import { LoggerMiddleware } from './lib/middlewares/logger.middleware';
 import { validateEnvironment } from './lib/utils/env.validate';
 import { AuthModule } from './apis/auth/auth.module';
 import { UserModule } from './apis/user/user.module';
+import { MeetModule } from './apis/meet/meet.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { UserModule } from './apis/user/user.module';
     }),
     AuthModule,
     UserModule,
+    MeetModule,
   ],
 })
 export class AppModule implements NestModule {

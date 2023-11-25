@@ -24,6 +24,7 @@ import { AuthUser } from 'src/lib/decorators/auth.user.decorator';
 import { MailService } from './mail/mail.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { randomUuid } from 'src/lib/utils/uuid.util';
+import { FcmService } from '../fcm/fcm.service';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -32,6 +33,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly userService: UserService,
     private readonly mailService: MailService,
+    private readonly fcmService: FcmService,
   ) {}
 
   @Post('/login')
@@ -123,8 +125,10 @@ export class AuthController {
       throw new BadRequestException('유효하지 않은 정보입니다.');
     }
 
-    const { id } = user;
+    const { id, fcmToken } = user;
     await this.userService.certifyUser(id);
+
+    await this.fcmService.sendMessageCertificate(fcmToken);
   }
 
   @Post('/fcm')

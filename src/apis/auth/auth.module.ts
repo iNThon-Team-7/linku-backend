@@ -9,6 +9,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { MailModule } from './mail/mail.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities';
+import { FcmModule } from '../fcm/fcm.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { User } from 'src/entities';
     }),
     PassportModule,
     MailModule,
+    FcmModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AuthController],

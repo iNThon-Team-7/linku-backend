@@ -40,6 +40,9 @@ class EnvironmentVariables {
 
   @IsString()
   GOOGLE_REFRESH_TOKEN: string;
+
+  @IsString()
+  FCM_ACCESS_KEY: string;
 }
 
 export const validateEnvironment = (config: Record<string, unknown>) => {
