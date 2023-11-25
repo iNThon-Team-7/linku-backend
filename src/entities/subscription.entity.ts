@@ -5,11 +5,13 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Tag } from './tag.entity';
 
 @Entity({ name: 'subscription' })
+@Unique('subscription_uk', ['userId', 'tagId'])
 export class Subscription extends BaseEntity {
   @Column()
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'subscription_pk' })

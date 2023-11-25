@@ -20,11 +20,11 @@ import {
   AuthUserDto,
 } from 'src/dtos';
 import { JwtAuthGuard } from './guard/jwt.auth.guard';
-import { AuthUser } from 'src/lib/decorators/auth.user.decorator';
 import { MailService } from './mail/mail.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { randomUuid } from 'src/lib/utils/uuid.util';
 import { FcmService } from '../fcm/fcm.service';
+import { AuthUser } from 'src/lib/decorators';
 
 @Controller('auth')
 @ApiTags('auth')

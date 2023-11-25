@@ -1,11 +1,22 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Header,
+  Param,
+  Patch,
+  Res,
+  UploadedFile,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AuthUser } from 'src/lib/decorators/auth.user.decorator';
-import { AuthUserDto, UserResponseDto } from 'src/dtos';
+import { AuthUserDto, UserRequestDto, UserResponseDto } from 'src/dtos';
 import { JwtAuthGuard } from '../auth/guard/jwt.auth.guard';
 import { RoleGuard } from '../auth/guard/role.guard';
-import { Role } from 'src/lib/enums';
+import { ImageType, Role, parseImageType } from 'src/lib/enums';
+import { AuthUser, InterceptFile } from 'src/lib/decorators';
+import { Response } from 'express';
 
 @Controller('user')
 @ApiTags('user')
@@ -23,11 +34,45 @@ export class UserController {
     return UserResponseDto.of(result);
   }
 
-  @Get('/test')
+  @Get('/:id/image')
+  @Header('Content-Type', 'image/jpeg')
+  @Header('Cache-Control', 'no-cache')
+  @ApiOperation({ summary: '사용자 프로필 이미지 조회' })
+  async getUserImage(
+    @Param() params: UserRequestDto,
+    @Res() response: Response,
+  ): Promise<void> {
+    const { id } = params;
+
+    const { image } = await this.userService.getUserByIdOrFail(id);
+    if (!image) {
+      throw new BadRequestException('프로필 이미지가 존재하지 않습니다.');
+    }
+
+    response.send(image);
+  }
+
+  @Patch('image')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
-  @ApiOperation({ deprecated: true, summary: 'Pending User Blocking 테스트' })
+  @InterceptFile('image')
+  @ApiOperation({ summary: '사용자 프로필 이미지 변경' })
   @ApiBearerAuth()
-  async test(): Promise<void> {
-    return;
+  async uploadImage(
+    @AuthUser() user: AuthUserDto,
+    @UploadedFile() image: Express.Multer.File,
+  ): Promise<void> {
+    const { id } = user;
+
+    if (!image) {
+      throw new BadRequestException('이미지 파일을 선택해주세요.');
+    }
+    const { mimetype, buffer } = image;
+
+    const type: ImageType = parseImageType(mimetype);
+    if (!type) {
+      throw new BadRequestException('지원하지 않는 이미지 타입입니다.');
+    }
+
+    await this.userService.updateUserImage(id, buffer);
   }
 }

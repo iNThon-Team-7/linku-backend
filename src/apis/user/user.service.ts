@@ -19,6 +19,10 @@ export class UserService {
     return this.userRepository.findOne({ where: { id } });
   }
 
+  async getUserByIdOrFail(id: number): Promise<User> {
+    return this.userRepository.findOneOrFail({ where: { id } });
+  }
+
   async getUserByUuid(uuid: string): Promise<User> {
     return this.userRepository.findOne({ where: { uuid } });
   }
@@ -45,5 +49,9 @@ export class UserService {
 
   async certifyUser(id: number): Promise<void> {
     await this.userRepository.update(id, { role: Role.USER });
+  }
+
+  async updateUserImage(id: number, image: Buffer): Promise<void> {
+    await this.userRepository.update(id, { image });
   }
 }

@@ -5,11 +5,13 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Meet } from './meet.entity';
 
 @Entity({ name: 'participation' })
+@Unique('participation_uk', ['userId', 'meetId'])
 export class Participation extends BaseEntity {
   @Column()
   @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'participation_pk' })
