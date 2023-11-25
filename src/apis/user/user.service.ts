@@ -19,6 +19,15 @@ export class UserService {
     return this.userRepository.findOne({ where: { id } });
   }
 
+  async getUserWithTagsById(id: number): Promise<User> {
+    return this.userRepository.findOne({
+      where: { id },
+      relations: {
+        subscriptions: { tag: true },
+      },
+    });
+  }
+
   async getUserByIdOrFail(id: number): Promise<User> {
     return this.userRepository.findOneOrFail({ where: { id } });
   }
@@ -49,6 +58,10 @@ export class UserService {
 
   async certifyUser(id: number): Promise<void> {
     await this.userRepository.update(id, { role: Role.USER });
+  }
+
+  async updateUserProfile(id: number, profile: Partial<User>): Promise<void> {
+    await this.userRepository.update(id, profile);
   }
 
   async updateUserImage(id: number, image: Buffer): Promise<void> {

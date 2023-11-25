@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   Header,
@@ -11,7 +12,13 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AuthUserDto, UserRequestDto, UserResponseDto } from 'src/dtos';
+import {
+  AuthUserDto,
+  UserDetailResponseDto,
+  UserProfileRequestDto,
+  UserRequestDto,
+  UserResponseDto,
+} from 'src/dtos';
 import { JwtAuthGuard } from '../auth/guard/jwt.auth.guard';
 import { RoleGuard } from '../auth/guard/role.guard';
 import { ImageType, Role, parseImageType } from 'src/lib/enums';
@@ -30,7 +37,16 @@ export class UserController {
   async getAuthUser(@AuthUser() user: AuthUserDto): Promise<UserResponseDto> {
     const { id } = user;
 
-    const result = await this.userService.getUserById(id);
+    const result = await this.userService.getUserWithTagsById(id);
+    return UserDetailResponseDto.of(result);
+  }
+
+  @Get('/:id')
+  @ApiOperation({ summary: '특정 사용자 정보 조회' })
+  async getUser(@Param() params: UserRequestDto): Promise<UserResponseDto> {
+    const { id } = params;
+
+    const result = await this.userService.getUserByIdOrFail(id);
     return UserResponseDto.of(result);
   }
 
@@ -50,6 +66,19 @@ export class UserController {
     }
 
     response.send(image);
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @ApiOperation({ summary: '사용자 프로필 정보 변경' })
+  @ApiBearerAuth()
+  async updateProfile(
+    @AuthUser() user: AuthUserDto,
+    @Body() body: UserProfileRequestDto,
+  ): Promise<void> {
+    const { id } = user;
+
+    return this.userService.updateUserProfile(id, { ...body });
   }
 
   @Patch('image')

@@ -51,12 +51,6 @@ export const RoleGuard = (minimumPermission: Role): Type<CanActivate> => {
         throw new PermissionException('Insufficient Permission', roleInfo);
       }
 
-      console.log(
-        roleInfo,
-        Object.keys(Role),
-        Object.keys(Role).indexOf(roleInfo.currentPermission),
-        Object.keys(Role).indexOf(roleInfo.minimumPermission),
-      );
       return true;
     }
   }

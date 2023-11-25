@@ -71,6 +71,6 @@ export class Meet extends BaseEntity {
   })
   host: User;
 
-  @ManyToOne(() => Participation, (participation) => participation.meet)
+  @OneToMany(() => Participation, (participation) => participation.meet)
   participations: Participation[];
 }
