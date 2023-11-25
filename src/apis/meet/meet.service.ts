@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Meet, Comment } from 'src/entities';
-import { Repository, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { AuthUser } from 'src/lib/decorators/auth.user.decorator';
+import { FindOptionsPage } from 'src/lib/utils/pagination.util';
 
 @Injectable()
 export class MeetService {
@@ -13,18 +14,22 @@ export class MeetService {
     private readonly commentRepository: Repository<Comment>,
   ) {}
 
-  async getMeets(@AuthUser() user, isTag): Promise<Meet[]> {
-    const { age, gender } = user;
-    const tagCompare = isTag ? user.tag : undefined;
+  async getMeets(
+    where: FindOptionsWhere<Meet> | FindOptionsWhere<Meet>[],
+    page: FindOptionsPage,
+  ): Promise<Meet[]> {
     return this.meetRepository.find({
-      where: {
-        meetTime: MoreThanOrEqual(new Date()),
-        minAge: MoreThanOrEqual(age),
-        maxAge: LessThanOrEqual(age),
-        gender: gender,
-        id: user.id,
-        tag: tagCompare,
-      },
+      where,
+      order: { createdAt: 'DESC' },
+      ...page,
+      relations: { host: {}, tag: {} },
+    });
+  }
+
+  async getMeetById(id: number): Promise<Meet> {
+    return this.meetRepository.findOne({
+      where: { id },
+      relations: { host: {}, tag: {}, participations: { user: {} } },
     });
   }
 

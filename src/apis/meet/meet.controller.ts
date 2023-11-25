@@ -1,46 +1,119 @@
-import { Controller, Get, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Query,
+  BadRequestException,
+  Param,
+} from '@nestjs/common';
 import { FcmService } from '../fcm/fcm.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guard/jwt.auth.guard';
 import { MeetService } from './meet.service';
 import { RoleGuard } from '../auth/guard/role.guard';
-import { AuthUserDto } from 'src/dtos/common/auth.user.dto';
-import { AuthUser } from 'src/lib/decorators/auth.user.decorator';
 import { Role } from 'src/lib/enums/user.role.enum';
 import {
-  MeetCommentRequestDto,
-  MeetCommentResponseDto,
-  MeetGetRequestDto,
+  AuthUserDto,
+  MeetDetailRequestDto,
+  MeetDetailResponseDto,
+  MeetRequestDto,
   MeetResponseDto,
+  PaginationDto,
 } from 'src/dtos';
+import { AuthUser } from 'src/lib/decorators';
+import { paginate } from 'src/lib/utils/pagination.util';
+import { UserService } from '../user/user.service';
+import {
+  FindOptionsWhere,
+  In,
+  IsNull,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+} from 'typeorm';
+import { Meet } from 'src/entities';
+import { productArray } from 'src/lib/utils/array.util';
 
 @Controller('meet')
 @ApiTags('meet')
 export class MeetController {
   constructor(
     private readonly meetService: MeetService,
+    private readonly userService: UserService,
     private readonly fcmService: FcmService,
   ) {}
 
-  @Get('/')
+  @Get()
   @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
-  @ApiOperation({ summary: 'isTag에 따라 category 포함해 meet를 반환' })
+  @ApiOperation({
+    summary: '참여 가능한 모임 목록을 반환; 성별, 나이, 시간, (구독) 필터링',
+  })
   @ApiBearerAuth()
-  async getMeet(
+  async getMeets(
     @AuthUser() user: AuthUserDto,
-    @Query() payload: MeetGetRequestDto,
+    @Query() payload: MeetRequestDto,
   ): Promise<MeetResponseDto[]> {
-    const { isTag } = payload;
-    const result = await this.meetService.getMeets(user, isTag);
+    const { id: userId } = user;
+    const { subscribed, ...pagination } = payload;
+
+    const { gender, age, subscriptions } =
+      await this.userService.getUserWithTagsById(userId);
+    if (!gender || !age) {
+      throw new BadRequestException(
+        '사용자의 성별 또는 나이가 입력되지 않았습니다.',
+      );
+    }
+
+    const tagOption = subscribed
+      ? await (async () => {
+          const tagIds = subscriptions.map((sub) => sub.tagId);
+          return { tagId: In(tagIds) };
+        })()
+      : {};
+    const expiredOption = { meetTime: MoreThanOrEqual(new Date()) };
+
+    const where = productArray<FindOptionsWhere<Meet>>([
+      [{ ...tagOption, ...expiredOption }],
+      [{ gender: IsNull() }, { gender }],
+      [{ minAge: IsNull() }, { minAge: LessThanOrEqual(age) }],
+      [{ maxAge: IsNull() }, { maxAge: MoreThanOrEqual(age) }],
+    ]);
+    const page = paginate(pagination);
+
+    const result = await this.meetService.getMeets(where, page);
     return result.map(MeetResponseDto.of);
   }
 
-  async getComment(
+  @Get('/join')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @ApiOperation({ summary: '참여 완료 및 참여 상태인 모임 목록을 반환' })
+  @ApiBearerAuth()
+  async getJoinedMeet(
     @AuthUser() user: AuthUserDto,
-    @Query() payload: MeetCommentRequestDto,
-  ) {
-    const { meetId } = payload;
-    const result = await this.meetService.getComment(user, meetId);
-    return result.map(MeetCommentResponseDto.of);
+    @Query() payload: PaginationDto,
+  ): Promise<MeetResponseDto[]> {
+    const { id: userId } = user;
+    const { ...pagination } = payload;
+
+    const where: FindOptionsWhere<Meet>[] = [
+      { participations: { user: { id: userId } } },
+      { host: { id: userId } },
+    ];
+    const page = paginate(pagination);
+
+    const result = await this.meetService.getMeets(where, page);
+    return result.map(MeetResponseDto.of);
+  }
+
+  @Get('/:id')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @ApiOperation({ summary: '모임 상세 정보를 반환' })
+  @ApiBearerAuth()
+  async getMeet(
+    @Param() payload: MeetDetailRequestDto,
+  ): Promise<MeetDetailResponseDto> {
+    const { id } = payload;
+
+    const meet = await this.meetService.getMeetById(id);
+    return MeetDetailResponseDto.of(meet);
   }
 }

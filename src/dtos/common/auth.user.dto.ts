@@ -1,4 +1,4 @@
 export class AuthUserDto {
   id: number;
-  refreshToken: string;
+  email: string;
 }

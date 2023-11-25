@@ -1,52 +1,23 @@
 import { Meet } from 'src/entities';
-import { Gender } from 'src/lib/enums';
+import { TagResponseDto } from '../tag';
+import { UserResponseDto } from '../user';
 
 export class MeetResponseDto {
   id: number;
-  hostId: number;
+  host: UserResponseDto;
   title: string;
-  body: string;
-  maxParticipants: number;
   meetTime: Date;
-  isOnline: boolean;
-  location: string;
-  minAge: number;
-  maxAge: number;
-  gender: Gender;
-  createdAt: Date;
-  tagId: number;
+  tag: TagResponseDto;
 
   static of(meet: Meet): MeetResponseDto {
-    const {
-      id,
-      hostId,
-      title,
-      body,
-      maxParticipants,
-      meetTime,
-      isOnline,
-      location,
-      minAge,
-      maxAge,
-      gender,
-      createdAt,
-      tagId,
-    } = meet;
+    const { id, host, title, meetTime, tag } = meet;
 
     return {
       id,
-      hostId,
+      host: UserResponseDto.of(host),
       title,
-      body,
-      maxParticipants,
       meetTime,
-      isOnline,
-      location,
-      minAge,
-      maxAge,
-      gender,
-      createdAt,
-      tagId,
+      tag: TagResponseDto.of(tag),
     };
   }
 }
