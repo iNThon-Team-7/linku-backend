@@ -7,6 +7,7 @@ import { validateEnvironment } from './lib/utils/env.validate';
 import { AuthModule } from './apis/auth/auth.module';
 import { UserModule } from './apis/user/user.module';
 import { MeetModule } from './apis/meet/meet.module';
+import { TagModule } from './apis/tag/tag.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { MeetModule } from './apis/meet/meet.module';
     AuthModule,
     UserModule,
     MeetModule,
+    TagModule,
   ],
 })
 export class AppModule implements NestModule {
