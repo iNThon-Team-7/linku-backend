@@ -34,7 +34,9 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '현재 로그인 사용자 정보 조회' })
   @ApiBearerAuth()
-  async getAuthUser(@AuthUser() user: AuthUserDto): Promise<UserResponseDto> {
+  async getAuthUser(
+    @AuthUser() user: AuthUserDto,
+  ): Promise<UserDetailResponseDto> {
     const { id } = user;
 
     const result = await this.userService.getUserWithTagsById(id);
