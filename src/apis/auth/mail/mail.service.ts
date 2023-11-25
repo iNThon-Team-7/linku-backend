@@ -8,9 +8,9 @@ export class MailService {
   async sendCertificateMail(email: string, uuid: string): Promise<void> {
     return this.mailerService.sendMail({
       to: email,
-      subject: '[linKU] 회원가입 이메일 인증 안내입니다.',
+      subject: '[LinKU] 회원가입 이메일 인증 안내입니다.',
       template: 'certificate',
-      context: { uuid },
+      context: { email, uuid },
     });
   }
 }

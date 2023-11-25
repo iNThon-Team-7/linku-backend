@@ -1,8 +1,44 @@
-<html
-  lang='en'
-  xmlns='http://www.w3.org/1999/xhtml'
-  xmlns:v='urn:schemas-microsoft-com:vml'
-  xmlns:o='urn:schemas-microsoft-com:office:office'
->
+<html lang='ko'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>LinKU 계정 인증</title>
+    <style>
+      body { font-family: sans-serif; } .container { width: 600px; margin: 0
+      auto; padding: 20px; border: none; background-color: #F6F6F6; } .header {
+      vertical-align: middle; margin-bottom: 20px; } .header .logo { width:
+      50px; height: 50px; border-radius: 50%; object-fit: cover; } .title {
+      font-size: 24px; font-weight: bold; } .content { line-height: 1.5;
+      color:#333333 } .button { background-color: #ff6666; color: #ffffff;
+      padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;
+      text-decoration: none; } a:visited{ color: #ffffff; }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='header'>
+        <img
+          src='https://avatars.githubusercontent.com/u/151982635?s=400&u=9ab41792014f5ff9f34d3d553c38ab7dbb4b2284&v=4'
+          alt='LinKU App Icon'
+          class='logo'
+        />
+      </div>
+      <span class='title'>LinKU 계정 인증</span>
 
+      <div class='content'>
+        안녕하세요,
+        {{email}}
+        님!<br /><br />
+        LinKU 앱에 가입해 주셔서 감사합니다.<br />
+        계정을 인증하려면 다음 버튼을 클릭하십시오.<br /><br />
+        <a
+          href='https://linku.kro.kr/auth/certificate?code={{uuid}}'
+          style='color:#ffffff !important'
+          class='button'
+        >계정 인증</a><br /><br />
+        감사합니다!<br />
+        LinKU 팀
+      </div>
+    </div>
+  </body>
 </html>

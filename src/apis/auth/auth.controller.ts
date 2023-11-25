@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Post,
   Query,
   UnauthorizedException,
@@ -113,7 +114,7 @@ export class AuthController {
     await this.userService.updateUserToken(id, null);
   }
 
-  @Post('/certificate')
+  @Get('/certificate')
   @ApiOperation({ summary: '회원 이메일 인증 처리' })
   async certificate(
     @Query() payload: AuthCertificateRequestDto,
