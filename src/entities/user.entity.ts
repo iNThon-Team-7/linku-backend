@@ -21,6 +21,9 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   refreshToken: string;
 
+  @Column({ nullable: true })
+  fcmToken: string;
+
   @Column({ type: 'uuid' })
   uuid: string;
 

@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import {
   AuthCertificateRequestDto,
+  AuthFcmRequestDto,
   AuthLoginRequestDto,
   AuthRefreshRequestDto,
   AuthRegisterRequestDto,
@@ -53,7 +54,7 @@ export class AuthController {
     const refreshToken = this.authService.generateRefreshToken(user);
 
     const hashedRefreshToken = await this.authService.hash(refreshToken);
-    await this.userService.updateUserToken(user.id, hashedRefreshToken);
+    await this.userService.updateUserRefreshToken(user.id, hashedRefreshToken);
 
     return { accessToken, refreshToken };
   }
@@ -111,7 +112,7 @@ export class AuthController {
   @ApiBearerAuth()
   async logout(@AuthUser() user: AuthUserDto): Promise<void> {
     const { id } = user;
-    await this.userService.updateUserToken(id, null);
+    await this.userService.updateUserRefreshToken(id, null);
   }
 
   @Get('/certificate')
@@ -128,5 +129,19 @@ export class AuthController {
 
     const { id } = user;
     await this.userService.certifyUser(id);
+  }
+
+  @Post('/fcm')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '회원 FCM Token 갱신' })
+  @ApiBearerAuth()
+  async updateFcmToken(
+    @AuthUser() user: AuthUserDto,
+    @Body() payload: AuthFcmRequestDto,
+  ): Promise<void> {
+    const { id } = user;
+    const { fcmToken } = payload;
+
+    await this.userService.updateUserFcmToken(id, fcmToken);
   }
 }

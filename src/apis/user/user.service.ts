@@ -31,12 +31,15 @@ export class UserService {
     return !user;
   }
 
-  async updateUserToken(id: number, refreshToken: string): Promise<void> {
+  async updateUserRefreshToken(
+    id: number,
+    refreshToken: string,
+  ): Promise<void> {
     await this.userRepository.update(id, { refreshToken });
   }
 
-  async updateUserUuid(id: number, uuid: string): Promise<void> {
-    await this.userRepository.update(id, { uuid });
+  async updateUserFcmToken(id: number, fcmToken: string): Promise<void> {
+    await this.userRepository.update(id, { fcmToken });
   }
 
   async certifyUser(id: number): Promise<void> {
