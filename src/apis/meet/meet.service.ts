@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Meet, Comment } from 'src/entities';
+import { Meet, Comment, Participation } from 'src/entities';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { FindOptionsPage } from 'src/lib/utils/pagination.util';
 
@@ -9,6 +9,8 @@ export class MeetService {
   constructor(
     @InjectRepository(Meet)
     private readonly meetRepository: Repository<Meet>,
+    @InjectRepository(Participation)
+    private readonly participationRepository: Repository<Participation>,
     @InjectRepository(Comment)
     private readonly commentRepository: Repository<Comment>,
   ) {}
@@ -45,5 +47,9 @@ export class MeetService {
 
   async addComment(comment: Partial<Comment>): Promise<void> {
     await this.commentRepository.create(comment).save();
+  }
+
+  async addParticipation(participation: Partial<Participation>): Promise<void> {
+    await this.participationRepository.create(participation).save();
   }
 }

@@ -159,6 +159,56 @@ export class MeetController {
     );
   }
 
+  @Post('/:id')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @ApiOperation({ summary: '개설된 모임에 참여' })
+  @ApiBearerAuth()
+  async joinMeet(
+    @AuthUser() user: AuthUserDto,
+    @Param() params: MeetDetailRequestDto,
+  ): Promise<void> {
+    const { id: meetId } = params;
+    const { id: userId } = user;
+
+    const { gender: userGender, age: userAge } =
+      await this.userService.getUserById(userId);
+
+    const meet = await this.meetService.getMeetById(meetId);
+    if (!meet) {
+      throw new BadRequestException('존재하지 않는 모임입니다.');
+    }
+
+    const { participations, maxParticipants, gender, minAge, maxAge } = meet;
+
+    const targets = [meet.host, ...participations.map((part) => part.user)];
+    if (targets.map((target) => target.id).includes(userId)) {
+      throw new BadRequestException('이미 모임에 참여한 사용자입니다.');
+    }
+
+    if (participations.length + 1 >= maxParticipants) {
+      throw new BadRequestException('모임의 최대 인원을 초과했습니다.');
+    }
+
+    if (gender !== null && gender !== userGender) {
+      throw new BadRequestException('모임의 성별 조건을 만족하지 않습니다.');
+    }
+
+    if (
+      (minAge !== null && minAge > userAge) ||
+      (maxAge !== null && maxAge < userAge)
+    ) {
+      throw new BadRequestException('모임의 나이 조건을 만족하지 않습니다.');
+    }
+
+    await this.meetService.addParticipation({ meetId, userId });
+
+    await Promise.all(
+      targets.map((target) =>
+        this.fcmService.sendMessageNewParticipant(target.fcmToken, meetId),
+      ),
+    );
+  }
+
   @Post('/:id/comment')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
   @ApiOperation({ summary: '모임에 대한 댓글을 작성' })

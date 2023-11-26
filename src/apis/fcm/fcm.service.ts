@@ -64,6 +64,21 @@ export class FcmService {
     });
   }
 
+  async sendMessageNewParticipant(
+    token: string,
+    meetId: number,
+  ): Promise<FcmResultDto> {
+    return this.sendFcm({
+      token,
+      title: '참여한 모임에 새로운 참가자가 있습니다.',
+      body: '지금 LinKU에서 새로운 참가자를 확인해 보세요!',
+      type: 'newParticipant',
+      data: {
+        meetId,
+      },
+    });
+  }
+
   async sendMessageNewReply(
     token: string,
     meetId: number,
