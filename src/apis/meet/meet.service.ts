@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Meet, Comment } from 'src/entities';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { AuthUser } from 'src/lib/decorators/auth.user.decorator';
 import { FindOptionsPage } from 'src/lib/utils/pagination.util';
 
 @Injectable()
@@ -33,13 +32,18 @@ export class MeetService {
     });
   }
 
-  async getComment(@AuthUser() user, meetId: number): Promise<Comment[]> {
-    const { id: userId } = user;
+  async getCommentsByMeetId(meetId: number): Promise<Comment[]> {
     return this.commentRepository.find({
-      where: {
-        meetId,
-        userId,
-      },
+      where: { meetId },
+      relations: { user: {} },
     });
+  }
+
+  async addMeet(meet: Partial<Meet>): Promise<Meet> {
+    return this.meetRepository.create(meet).save();
+  }
+
+  async addComment(comment: Partial<Comment>): Promise<void> {
+    await this.commentRepository.create(comment).save();
   }
 }

@@ -28,6 +28,12 @@ export class UserService {
     });
   }
 
+  async getUsersByTagId(tagId: number): Promise<User[]> {
+    return this.userRepository.find({
+      where: { subscriptions: { tagId } },
+    });
+  }
+
   async getUserByIdOrFail(id: number): Promise<User> {
     return this.userRepository.findOneOrFail({ where: { id } });
   }

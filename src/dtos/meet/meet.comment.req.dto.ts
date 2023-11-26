@@ -1,3 +1,6 @@
+import { IsString } from 'class-validator';
+
 export class MeetCommentRequestDto {
-  meetId: number;
+  @IsString()
+  body: string;
 }

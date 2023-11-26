@@ -5,6 +5,8 @@ import {
   Query,
   BadRequestException,
   Param,
+  Post,
+  Body,
 } from '@nestjs/common';
 import { FcmService } from '../fcm/fcm.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -14,8 +16,11 @@ import { RoleGuard } from '../auth/guard/role.guard';
 import { Role } from 'src/lib/enums/user.role.enum';
 import {
   AuthUserDto,
+  MeetCommentRequestDto,
+  MeetCommentResponseDto,
   MeetDetailRequestDto,
   MeetDetailResponseDto,
+  MeetOpenRequestDto,
   MeetRequestDto,
   MeetResponseDto,
   PaginationDto,
@@ -115,5 +120,76 @@ export class MeetController {
 
     const meet = await this.meetService.getMeetById(id);
     return MeetDetailResponseDto.of(meet);
+  }
+
+  @Get('/:id/comment')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @ApiOperation({ summary: '모임에 대한 댓글 목록을 반환' })
+  @ApiBearerAuth()
+  async getComments(
+    @Param() payload: MeetDetailRequestDto,
+  ): Promise<MeetCommentResponseDto[]> {
+    const { id: meetId } = payload;
+
+    const comments = await this.meetService.getCommentsByMeetId(meetId);
+    return comments.map(MeetCommentResponseDto.of);
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @ApiOperation({ summary: '새로운 모임을 개설' })
+  @ApiBearerAuth()
+  async addMeet(
+    @AuthUser() user: AuthUserDto,
+    @Body() payload: MeetOpenRequestDto,
+  ): Promise<void> {
+    const { id: hostId } = user;
+    const { tagId } = payload;
+
+    const { id } = await this.meetService.addMeet({ hostId, ...payload });
+
+    const targets = await this.userService.getUsersByTagId(tagId);
+
+    await Promise.all(
+      targets
+        .filter((target) => target.id !== hostId)
+        .map((target) =>
+          this.fcmService.sendMessageNewMeet(target.fcmToken, id),
+        ),
+    );
+  }
+
+  @Post('/:id/comment')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @ApiOperation({ summary: '모임에 대한 댓글을 작성' })
+  @ApiBearerAuth()
+  async addComment(
+    @AuthUser() user: AuthUserDto,
+    @Param() params: MeetDetailRequestDto,
+    @Body() payload: MeetCommentRequestDto,
+  ): Promise<void> {
+    const { id: meetId } = params;
+    const { id: userId } = user;
+
+    const meet = await this.meetService.getMeetById(meetId);
+    if (!meet) {
+      throw new BadRequestException('존재하지 않는 모임입니다.');
+    }
+
+    const { host, participations } = meet;
+    const targets = [host, ...participations.map((part) => part.user)];
+
+    if (!targets.map((target) => target.id).includes(userId)) {
+      throw new BadRequestException('모임에 참여하지 않은 사용자입니다.');
+    }
+    await this.meetService.addComment({ meetId, userId, ...payload });
+
+    await Promise.all(
+      targets
+        .filter((target) => target.id !== userId)
+        .map((target) =>
+          this.fcmService.sendMessageNewReply(target.fcmToken, meetId),
+        ),
+    );
   }
 }
